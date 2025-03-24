@@ -83,7 +83,7 @@ async function connect() {
     if (!socket.authState.creds.registered) {
         console.log("Credenciais ainda não configuradas!");
         console.log('Informe o número de telefone do bot (exemplo: "5511920202020"):');
-        const phoneNumber = await question('numero de telefone: ');
+        const phoneNumber = BOT_NUMBER;//await question('numero de telefone: ');
         if (!phoneNumber) {
             throw new Error('numero invalido');
         }
