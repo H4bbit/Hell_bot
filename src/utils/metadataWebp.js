@@ -1,7 +1,7 @@
-//const crypto = require('crypto');
-import crypto from 'crypto'
-//const webp = require('node-webpmux'); // Biblioteca para manipulação de WebP
-import webp from "node-webpmux"
+const crypto = require('crypto');
+//import crypto from 'crypto'
+const webp = require('node-webpmux'); // Biblioteca para manipulação de WebP
+//import webp from "node-webpmux"
 /**
  * Adiciona metadados EXIF personalizados a uma figurinha WebP
  * @param {Buffer} buffer - Buffer da imagem WebP original
