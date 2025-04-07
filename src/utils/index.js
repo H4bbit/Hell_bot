@@ -1,4 +1,4 @@
-const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+const { downloadContentFromMessage } = require('baileys');
 const path = require('path');
 const readline = require('readline');
 const { buffer } = require('stream/consumers');

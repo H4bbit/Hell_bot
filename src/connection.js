@@ -9,7 +9,7 @@ const {
     proto,
     makeInMemoryStore,
     makeCacheableSignalKeyStore,
-} = require('@whiskeysockets/baileys');
+} = require('baileys');
 
 const path = require('path');
 const pino = require('pino');
