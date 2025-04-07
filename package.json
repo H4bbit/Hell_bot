@@ -11,8 +11,8 @@
   "description": "",
   "dependencies": {
     "@seald-io/nedb": "^4.0.4",
-    "@whiskeysockets/baileys": "^6.7.9",
     "axios": "^1.7.9",
+    "baileys": "^6.7.16",
     "dotenv": "^16.4.7",
     "fluent-ffmpeg": "^2.1.3",
     "node-cache": "^5.1.2",
