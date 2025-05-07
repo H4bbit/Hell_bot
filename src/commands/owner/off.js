@@ -10,7 +10,7 @@ module.exports = {
         sendSuccessReply,
         remoteJid
     }) => {
-        const isActive = isActiveGroup(remoteJid);
+        const isActive = await isActiveGroup(remoteJid);
         if (!isActive) {
             return await sendSuccessReply("o bot ja esta ativado nesse grupo");
         }

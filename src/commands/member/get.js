@@ -10,7 +10,7 @@ module.exports = {
         webMessage,
     }) => {
 
-        console.log("webMesaage: ", JSON.stringify(webMessage));
-        console.log("mesaage: ", JSON.stringify(webMessage.message));
+        console.log(webMessage);
+        console.log(webMessage.message);
     }
 }

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { PREFIX } = require('../../config');
+const { isActivateNSFWGroup } = require('../../utils/database');
 
 module.exports = {
     name: 'r34',
@@ -13,8 +14,15 @@ module.exports = {
         sendReact,
         sendReply,
         sendWaitReact,
-        sendSuccessReact
+        sendSuccessReact,
+        sendErrorReact,
+        remoteJid
     }) => {
+
+        if (await isActivateNSFWGroup(remoteJid)) {
+            await sendErrorReact();
+            return await sendReply("o modo nsfw precisa esta ativo para usar esse comando");
+        }
         if (!args || args.length === 0) {
             await sendReact('❓');
             return await sendReply('Digite um termo para pesquisar no Rule34, exemplo: r34 naruto.');
@@ -64,7 +72,7 @@ async function fetchAndSendMedia(requestUrl, sendImageFromURL, sendVideoFromURL,
         sendMedia(fileUrl, fileExtension, caption, sendImageFromURL, sendVideoFromURL);
     } catch (error) {
         console.error('Erro ao buscar os dados:', error.response?.data || error.toString());
-        await sendReply("Ocorreu um erro ao buscar os dados.");
+        return await sendReply("Ocorreu um erro ao buscar os dados.");
     }
 }
 

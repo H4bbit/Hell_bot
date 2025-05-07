@@ -1,7 +1,16 @@
 const { extractDataFromMessage, baileysIs, download } = require('.');
 const fs = require('fs');
+
+/**
+ * Carrega funções utilitárias comuns para uso em comandos do bot.
+ * @param {Object} params
+ * @param {Object} params.socket - Conexão ativa com o cliente WhatsApp.
+ * @param {Object} params.webMessage - Mensagem recebida a ser processada.
+ * @returns {Object|null} - Conjunto de utilitários extraídos da mensagem ou null se inválido.
+ */
 exports.loadCommonFunctions = ({ socket, webMessage }) => {
-    const { remoteJid,
+    const {
+        remoteJid,
         prefix,
         commandName,
         args,
@@ -11,62 +20,76 @@ exports.loadCommonFunctions = ({ socket, webMessage }) => {
         replyJid
     } = extractDataFromMessage(webMessage);
 
-    if (!remoteJid) {
-        return null;
-    }
+    if (!remoteJid) return null;
+
     const isImage = baileysIs(webMessage, "image");
     const isVideo = baileysIs(webMessage, "video");
     const isSticker = baileysIs(webMessage, "sticker");
 
     const isGroup = remoteJid.endsWith("@g.us");
 
+    // Funções de download
     const downloadImage = async (webMessage, fileName) => {
-        return await download(webMessage, fileName, "image", "png");
+        try {
+            return await download(webMessage, fileName, "image", "png");
+        } catch (err) {
+            console.error("Erro ao baixar imagem:", err);
+        }
     };
 
     const downloadSticker = async (webMessage, fileName) => {
-        return await download(webMessage, fileName, "sticker", "webp");
-    };
-    const downloadVideo = async (webMessage, fileName) => {
-        return await download(webMessage, fileName, "video", "mp4");
-    };
-
-    const sendText = async (text, mentions) => {
-        let optionalParams = {};
-        if (mentions?.length) {
-            optionalParams = { mentions };
+        try {
+            return await download(webMessage, fileName, "sticker", "webp");
+        } catch (err) {
+            console.error("Erro ao baixar figurinha:", err);
         }
-        return await socket.sendMessage(
-            remoteJid, {
-            text: `${text}`,
-            ...optionalParams
-
-        });
     };
+
+    const downloadVideo = async (webMessage, fileName) => {
+        try {
+            return await download(webMessage, fileName, "video", "mp4");
+        } catch (err) {
+            console.error("Erro ao baixar vídeo:", err);
+        }
+    };
+
+    // Funções de envio de texto
+    const sendText = async (text, mentions) => {
+        try {
+            const optionalParams = mentions?.length ? { mentions } : {};
+            return await socket.sendMessage(remoteJid, {
+                text: `${text}`,
+                ...optionalParams
+            });
+        } catch (err) {
+            console.error("Erro ao enviar texto:", err);
+        }
+    };
+
     const sendReply = async (text) => {
-        return await socket.sendMessage(remoteJid,
-            { text: `${text}` },
-            { quoted: webMessage });
+        try {
+            return await socket.sendMessage(remoteJid, { text: `${text}` }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar resposta:", err);
+        }
     };
+
     const sendReact = async (emoji) => {
-        return await socket.sendMessage(remoteJid,
-            { react: { text: emoji, key: webMessage.key } }
-        )
+        try {
+            return await socket.sendMessage(remoteJid, {
+                react: { text: emoji, key: webMessage.key }
+            });
+        } catch (err) {
+            console.error("Erro ao enviar reação:", err);
+        }
     };
 
-    const sendSuccessReact = async () => {
-        return await sendReact("✅");
-    };
-    const sendWaitReact = async () => {
-        return await sendReact("⏳");
-    };
-    const sendWarningReact = async () => {
-        return await sendReact("⚠️");
-    };
-    const sendErrorReact = async () => {
-        return await sendReact("❌");
-    };
+    const sendSuccessReact = () => sendReact("✅");
+    const sendWaitReact = () => sendReact("⏳");
+    const sendWarningReact = () => sendReact("⚠️");
+    const sendErrorReact = () => sendReact("❌");
 
+    // Respostas com reação
     const sendSuccessReply = async (text) => {
         await sendSuccessReact();
         return await sendReply(`✅ ${text}`);
@@ -84,93 +107,99 @@ exports.loadCommonFunctions = ({ socket, webMessage }) => {
         return await sendReply(`❌ ${text}`);
     };
 
-
+    // Envio de mídia
     const sendStickerFromBuffer = async (buffer) => {
-        return await socket.sendMessage(remoteJid, {
-            sticker: buffer,
-        });
-    }
-
-
+        try {
+            return await socket.sendMessage(remoteJid, { sticker: buffer });
+        } catch (err) {
+            console.error("Erro ao enviar figurinha do buffer:", err);
+        }
+    };
 
     const sendStickerFromFile = async (file) => {
-        return await socket.sendMessage(remoteJid, {
-            sticker: fs.readFileSync(file),
-        });
+        try {
+            return await socket.sendMessage(remoteJid, { sticker: fs.readFileSync(file) });
+        } catch (err) {
+            console.error("Erro ao enviar figurinha do arquivo:", err);
+        }
     };
 
     const sendStickerFromURL = async (url) => {
-        return await socket.sendMessage(remoteJid, {
-            sticker: { url },
-        });
-    }
+        try {
+            return await socket.sendMessage(remoteJid, { sticker: { url } });
+        } catch (err) {
+            console.error("Erro ao enviar figurinha da URL:", err);
+        }
+    };
+
     const sendImageFromFile = async (file, caption = "") => {
-        return await socket.sendMessage(
-            remoteJid,
-            {
+        try {
+            return await socket.sendMessage(remoteJid, {
                 image: fs.readFileSync(file),
-                caption: caption ? `${caption}` : "",
-            },
-            { quoted: webMessage }
-        );
+                caption
+            }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar imagem do arquivo:", err);
+        }
     };
 
     const sendImageFromURL = async (url, caption = "") => {
-        return await socket.sendMessage(
-            remoteJid,
-            {
+        try {
+            return await socket.sendMessage(remoteJid, {
                 image: { url },
-                caption: caption ? `${caption}` : "",
-            },
-            { url, quoted: webMessage }
-        );
+                caption
+            }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar imagem da URL:", err);
+        }
     };
 
     const sendVideoFromURL = async (url, caption = "", gifPlayback = false) => {
-        return await socket.sendMessage(
-            remoteJid,
-            {
+        try {
+            return await socket.sendMessage(remoteJid, {
                 video: { url },
-                caption: caption ? `${caption}` : "",
-                gifPlayback,
-            },
-            { url, quoted: webMessage }
-        );
+                caption,
+                gifPlayback
+            }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar vídeo da URL:", err);
+        }
     };
+
     const sendAudioFromFile = async (file, ptt = false) => {
-        return await socket.sendMessage(
-            remoteJid,
-            {
+        try {
+            return await socket.sendMessage(remoteJid, {
                 audio: fs.readFileSync(file),
                 ptt
-            },
-            { quoted: webMessage }
-        );
+            }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar áudio do arquivo:", err);
+        }
     };
+
     const sendAudioFromURL = async (url, ptt = false) => {
-        return await socket.sendMessage(
-            remoteJid,
-            {
+        try {
+            return await socket.sendMessage(remoteJid, {
                 audio: { url },
                 mimetype: "audio/mp4",
                 ptt
-            },
-            { url, quoted: webMessage }
-        );
-    }
+            }, { quoted: webMessage });
+        } catch (err) {
+            console.error("Erro ao enviar áudio da URL:", err);
+        }
+    };
 
-    //give group/chat name 
     const getGroupName = async (remoteJid) => {
         try {
             const groupMetadata = await socket.groupMetadata(remoteJid);
             return groupMetadata.subject;
         } catch (error) {
-            console.log(error);
+            console.error("Erro ao obter nome do grupo:", error);
             return null;
         }
-    }
+    };
 
-
+    // Exporta todas as funções e dados úteis
     return {
         socket,
         remoteJid,
@@ -186,13 +215,9 @@ exports.loadCommonFunctions = ({ socket, webMessage }) => {
         isSticker,
         replyJid,
         webMessage,
+
         sendText,
         sendReply,
-        sendStickerFromFile,
-        sendStickerFromBuffer,
-        sendStickerFromURL,
-        sendImageFromFile,
-
         sendReact,
         sendSuccessReact,
         sendWaitReact,
@@ -204,16 +229,21 @@ exports.loadCommonFunctions = ({ socket, webMessage }) => {
         sendWarningReply,
         sendErrorReply,
 
+        sendStickerFromFile,
+        sendStickerFromBuffer,
+        sendStickerFromURL,
+
+        sendImageFromFile,
+        sendImageFromURL,
+        sendVideoFromURL,
+
         sendAudioFromFile,
         sendAudioFromURL,
 
-        sendImageFromURL,
         downloadImage,
         downloadSticker,
-        sendVideoFromURL,
         downloadVideo,
 
         getGroupName
-
     };
 };

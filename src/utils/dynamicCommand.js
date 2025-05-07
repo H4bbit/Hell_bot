@@ -1,20 +1,40 @@
-const { isActiveGroup } = require('../utils/database');
-const { verifyPrefix, hasTypeOrCommand } = require('../middlewares');
+const {
+    isActiveGroup,
+    isActiveAntiLinkGroup,
+
+} = require('../utils/database');
+const { verifyPrefix,
+    hasTypeOrCommand,
+    isLink,
+    isAdmin,
+} = require('../middlewares');
+
 const { checkPermission } = require('../middlewares/checkPermission');
 const {
     DangerError,
     WarningError,
     InvalidParameterError } = require('../errors');
 const { findCommandImport } = require(".");
-const { ONLY_GROUP_ID } = require("../config");
 
+/**
+ * @param {Object} paramsHandler - Objeto contendo os parâmetros da mensagem.
+ * @param {String} paramsHandler.commandName - Nome do comando.
+ * @param {String} paramsHandler.prefix - Prefixo do comando.
+ * @param {Function} paramsHandler.sendWarningReply - Função para enviar uma mensagem de aviso.
+ * @param {Function} paramsHandler.sendErrorReply - Função para enviar uma mensagem de erro.
+ * @param {String} paramsHandler.remoteJid - ID do chat.
+ * @param {Boolean} paramsHandler.isGroup - Indica se o chat é um grupo.
+ *
+ */
 exports.dynamicCommand = async (paramsHandler) => {
     const {
         commandName,
         prefix,
         sendWarningReply,
         sendErrorReply,
-        remoteJid
+        remoteJid,
+        isGroup,
+        fullMessage
 
     } = paramsHandler;
 
@@ -28,14 +48,40 @@ exports.dynamicCommand = async (paramsHandler) => {
         return;
     }
 
-    if ((!await isActiveGroup(remoteJid)) && command.name !== "on") {
+    if (isGroup && (!await isActiveGroup(remoteJid)) && command.name !== "on") {
         /*
                 await sendWarningReply(
                     "Este grupo está desativado! Peça para o dono do grupo ativar o bot!"
                 );
         */
+        console.log('grupo inativo ' + remoteJid);
+        console.log(command);
         return;
     }
+    /*
+        if (isActiveAntiLinkGroup(remoteJid) && isLink(fullMessage)) {
+            if (!userJid) return;
+    
+            if (!(await isAdmin({ remoteJid, userJid, socket }))) {
+                await socket.groupParticipantsUpdate(remoteJid, [userJid], "remove");
+    
+                await sendReply(
+                    "Anti-link ativado! Você foi removido por enviar um link!"
+                );
+    
+                await socket.sendMessage(remoteJid, {
+                    delete: {
+                        remoteJid,
+                        fromMe: false,
+                        id: webMessage.key.id,
+                        participant: webMessage.key.participant,
+                    },
+                });
+    
+                return;
+            }
+        }
+        */
     try {
         await command.handle({ ...paramsHandler, type });
     } catch (error) {

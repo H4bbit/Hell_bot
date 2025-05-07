@@ -5,3 +5,4 @@ node_modules/
 assets/auth
 assets/temp
 database/
+logs/app.log

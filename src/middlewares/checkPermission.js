@@ -41,6 +41,15 @@ exports.checkPermission = async ({ type, socket, userJid, remoteJid }) => {
 */
 const { BOT_OWNER, BOT_NUMBER } = require("../config");
 
+/** 
+    * verifica se o usuário tem permissão
+    * @param {Object} params - Parâmetros da verificação.
+    * @param {'member' | 'admin' | 'owner' } params.type - Tipo de permissão a ser verificada.
+    * @param {import('baileys').WASocket} params.socket - Objeto de socket do WhatsApp.}
+    * @param {string} params.userJid - JID do usuário a ser verificado.
+    * @param {string} params.remoteJid - JID do grupo.
+    * @returns {Promise<boolean>} - Retorna true se o usuário tem permissão, false caso contrário.
+    */
 exports.checkPermission = async ({ type, socket, userJid, remoteJid }) => {
     if (type === 'member') {
         return true;

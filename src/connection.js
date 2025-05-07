@@ -30,13 +30,13 @@ const store = makeInMemoryStore({
 });
 
 async function getMessage(key) {
-    let message = getMessages(key.remoteJid, key.id)
+    let message = await getMessages(key.remoteJid, key.id)
     if (message) {
         return proto.Message.fromObject(message)
     }
     return proto.Message.fromObject({})
 }
-
+//
 const patchInteractiveMessage = message => {
     return message?.interactiveMessage
         ? {
@@ -52,6 +52,7 @@ const patchInteractiveMessage = message => {
         }
         : message;
 };
+//
 
 async function connect() {
     const { state, saveCreds } = await useMultiFileAuthState(
@@ -67,7 +68,7 @@ async function connect() {
         getMessage,
         patchMessageBeforeSending: patchInteractiveMessage,
         msgRetryCounterCache,
-        syncFullHistory: true,
+        syncFullHistory: false,
         printQRInTerminal: false,
         defaultQueryTimeoutMs: 60 * 1000,
         keepAliveIntervalMs: 60 * 1000,
@@ -83,7 +84,7 @@ async function connect() {
     if (!socket.authState.creds.registered) {
         console.log("Credenciais ainda não configuradas!");
         console.log('Informe o número de telefone do bot (exemplo: "5511920202020"):');
-        const phoneNumber = BOT_NUMBER; //await question('numero de telefone: ');
+        const phoneNumber = await question('numero de telefone: ');
         if (!phoneNumber) {
             throw new Error('numero invalido');
         }
@@ -92,7 +93,7 @@ async function connect() {
     }
 
     //limpa mensagens armazenadas na sessao anterior
-    clearMessages();
+    await clearMessages();
 
     //para cada atualização de conexão, verifica se houve erro e qual foi
     socket.ev.on("connection.update", async (update) => {

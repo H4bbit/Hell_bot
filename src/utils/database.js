@@ -15,13 +15,21 @@ db.userMarks = new Datastore({
     autoload: true
 });
 
-db.inactiveGroups = new Datastore({
-    filename: path.join(databasePath, "inactive_groups.db"),
+db.activeGroups = new Datastore({
+    filename: path.join(databasePath, "active_groups.db"),
     autoload: true
 });
 
-//let  messages = {}
-// message.store = async ...
+db.antilinkGroups = new Datastore({
+    filename: path.join(databasePath, "antilink_groups.db"),
+    autoload: true
+});
+
+db.nsfwGroups = new Datastore({
+    filename: path.join(databasePath, "nsfw_groups.db"),
+    autoload: true
+});
+
 //
 // Armazenar mesagens
 exports.storeMessages = async (chatId, messageId, message) => {
@@ -36,7 +44,8 @@ exports.storeMessages = async (chatId, messageId, message) => {
 
 // Obter mesagens
 exports.getMessages = async (chatId, messageId) => {
-    await db.messages.findOneAsync({ chatId, messageId })
+    console.log(await db.messages.findOneAsync({}))
+    return await db.messages.findOneAsync({ chatId, messageId })
 };
 // clear messages 
 exports.clearMessages = async () => {
@@ -44,8 +53,7 @@ exports.clearMessages = async () => {
 };
 
 
-
-// Salvar marca do usuário
+/*
 exports.saveUserMark = (userJid, autor, pack) => {
     return new Promise((resolve, reject) => {
         db.userMarks.update(
@@ -64,7 +72,6 @@ exports.saveUserMark = (userJid, autor, pack) => {
     });
 };
 
-// Obter marca do usuário
 exports.getUserMark = (userJid) => {
     return new Promise((resolve, reject) => {
         db.userMarks.findOne({ userJid }, (err, doc) => {
@@ -77,45 +84,45 @@ exports.getUserMark = (userJid) => {
         });
     });
 };
+*/
 
 // Ativar grupo
-exports.activateGroup = (groupId) => {
-    return new Promise((resolve, reject) => {
-        db.inactiveGroups.remove({ groupId }, {}, (err, numRemoved) => {
-            if (err) {
-                console.error("Erro ao ativar grupo:", err);
-                reject(err);
-            } else {
-                resolve(numRemoved > 0);
-            }
-        });
-    });
+exports.activateGroup = async (groupId) => {
+    await db.activeGroups.insertAsync({ groupId })
+    console.log(await db.activeGroups.findOneAsync({}))
 };
 
 // Desativar grupo
-exports.deactivateGroup = (groupId) => {
-    return new Promise((resolve, reject) => {
-        db.inactiveGroups.insert({ groupId }, (err) => {
-            if (err) {
-                console.error("Erro ao desativar grupo:", err);
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
+exports.deactivateGroup = async (groupId) => {
+    await db.activeGroups.removeAsync({ groupId })
+    console.log(await db.activeGroups.findOneAsync({}))
 };
 
 // Verificar se o grupo está ativo
-exports.isActiveGroup = (groupId) => {
-    return new Promise((resolve, reject) => {
-        db.inactiveGroups.findOne({ groupId }, (err, doc) => {
-            if (err) {
-                console.error("Erro ao verificar status do grupo:", err);
-                reject(err);
-            } else {
-                resolve(!doc);
-            }
-        });
-    });
+exports.isActiveGroup = async (groupId) => {
+    console.log(await db.activeGroups.findOneAsync({}))
+    return await db.activeGroups.findOneAsync({ groupId })
 };
+
+
+exports.activateAntiLinkGroup = async (groupId) => {
+    await db.antilinkGroups.insertAsync({ groupId })
+}
+
+exports.deactivateAntiLinkGroup = async (groupId) => {
+    await db.antilinkGroups.removeAsync({ groupId })
+}
+
+exports.isActivateNSFWGroup = async (groupId) => {
+    console.log(await db.nsfwGroups.findOneAsync({}));
+    return await db.nsfwGroups.findOneAsync({ groupId })
+}
+exports.activateNSFWGroup = async (groupId) => {
+    await db.nsfwGroups.insertAsync({ groupId })
+    console.log(await db.nsfwGroups.findOneAsync({}));
+}
+
+exports.deactivateNSFWGroup = async (groupId) => {
+    await db.nsfwGroups.removeAsync({ groupId })
+    console.log(await db.nsfwGroups.findOneAsync({}));
+}

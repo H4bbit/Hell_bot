@@ -1,23 +1,28 @@
 const { TIMEOUT_IN_MS_BY_EVENT } = require('./config');
+const { storeMessages } = require('./utils/database');
 const { onMessagesUpsert } = require('./middlewares/onMessagesUpsert');
 
-const { storeMessages} = require('./utils/database');
-
-//essa função é responsável por carregar os eventos 
 exports.load = (socket) => {
-    //upsert é um evento que é emitido pelo baileys quando uma mensagem é enviada
-    socket.ev.on("messages.upsert", async ({ messages }) => {
-        //configurado um delay para evitar que o bot seja banido
-        setTimeout(() => {
-            //armazena as mensagens no banco de dados
-            storeMessages(messages[0].key.remoteJid,
-                messages[0].key.id,
-                messages[0].message
-            );
-
-            //passa o socket e as mensagens para o middleware onMessagesUpsert
-            //o middleware é responsável por processar as mensagens
-            onMessagesUpsert({ socket, messages });
+    socket.ev.on("messages.upsert", async ({ messages, type }) => {
+        if (type !== "notify") return;
+        setTimeout(async () => {
+            const msg = messages[0];
+            const remoteJid = msg.key.remoteJid;
+            //            const senderJid = message.key.participant || remoteJid;
+            const content = msg.message;
+            if (!content) return;
+            // Salva no banco normalmente
+            /*
+                        await storeMessages(
+                            remoteJid,
+                            msg.key.id,
+                            content,
+                            //               msg.key.participant
+                        );
+            */
+            await onMessagesUpsert({ socket, messages });
         }, TIMEOUT_IN_MS_BY_EVENT);
     });
-}
+
+    //    socket.ev.on("")
+};
