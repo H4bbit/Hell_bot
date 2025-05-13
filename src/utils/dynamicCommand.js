@@ -34,7 +34,8 @@ exports.dynamicCommand = async (paramsHandler) => {
         sendErrorReply,
         remoteJid,
         isGroup,
-        fullMessage
+        fullMessage,
+        webMessage,
 
     } = paramsHandler;
 
@@ -43,7 +44,7 @@ exports.dynamicCommand = async (paramsHandler) => {
         return;
     }
 
-    if (!(await checkPermission({ type, ...paramsHandler }))) {
+    if (!(await checkPermission({ type, ...paramsHandler })) && !webMessage.key.fromMe) {
         await sendErrorReply('você não tem permissao para usar esse comando!');
         return;
     }
